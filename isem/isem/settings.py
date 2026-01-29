@@ -12,25 +12,28 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-hd)c+39%f(@*gqjvvz4ss3d37k@&-_f_lh6v*45#^z_5_=cvv^"
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-hd)c+39%f(@*gqjvvz4ss3d37k@&-_f_lh6v*45#^z_5_=cvv^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+# Add Render.com hostname
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -50,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Add WhiteNoise for static files
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -77,21 +81,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "isem.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Use PostgreSQL on Render, MySQL locally
 DATABASES = {
-    "default": {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'isem_db',         # database name you created
-        'USER': 'root',            # default WAMP username
-        'PASSWORD': 'admin123',             # WAMP password of your account (e.g. p@ssw0rd) #renuupassword = admin123
-        'HOST': 'localhost',       # or 'localhost'
-        'PORT': '3306',            # default MySQL port in WAMP
-    }
+    'default': dj_database_url.config(
+        default='mysql://root:admin123@localhost:3306/isem_db',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -111,47 +111,53 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
+TIME_ZONE = "Asia/Manila"  # Changed to Philippines timezone
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
-
-#MEDIA FILES
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Add this for development
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+if os.path.exists(os.path.join(BASE_DIR, 'static')):
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
-# For production (collected static files)
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# WhiteNoise configuration for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# MEDIA FILES
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-#EMAILCONFIG
+# EMAIL CONFIG
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "isem.dental.clinic@gmail.com"
-EMAIL_HOST_PASSWORD = "hiombzdukkcwbrwg" #app password
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'isem.dental.clinic@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'hiombzdukkcwbrwg')
 DEFAULT_FROM_EMAIL = 'Tactay Billedo Dental Clinic <isem.dental.clinic@gmail.com>'
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
