@@ -1,0 +1,425 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Dashboard{% endblock %}</title>
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet" />
+
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body class="bg-gray-100">
+       <!-- Modal Notifications (Centered) -->
+  {% if messages %}
+    {% for message in messages %}
+      <div id="notification-modal-{{ forloop.counter }}" 
+           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+        <div class="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full mx-4 animate-scale-in">
+          <!-- Header with Icon -->
+          <div class="flex items-center space-x-4 mb-4">
+            {% if message.tags == 'success' %}
+              <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <span class="material-icons text-green-600 text-2xl">check_circle</span>
+              </div>
+            {% elif message.tags == 'error' %}
+              <div class="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <span class="material-icons text-red-600 text-2xl">error</span>
+              </div>
+            {% elif message.tags == 'warning' %}
+              <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <span class="material-icons text-yellow-600 text-2xl">warning</span>
+              </div>
+            {% else %}
+              <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <span class="material-icons text-blue-600 text-2xl">info</span>
+              </div>
+            {% endif %}
+            
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-gray-800">
+                {% if message.tags == 'success' %}Success
+                {% elif message.tags == 'error' %}Error
+                {% elif message.tags == 'warning' %}Warning
+                {% else %}Information{% endif %}
+              </h3>
+            </div>
+            
+            <!-- Close button -->
+            <button onclick="closeModal('notification-modal-{{ forloop.counter }}')" 
+                    class="text-gray-400 hover:text-gray-600">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          
+          <!-- Message Content -->
+          <div class="mb-6">
+            <p class="text-gray-700">{{ message }}</p>
+          </div>
+          
+          <!-- OK Button -->
+          <div class="flex justify-end">
+            <button onclick="closeModal('notification-modal-{{ forloop.counter }}')" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+    <div class="flex min-h-screen">
+
+      <!-- Sidebar -->
+      <aside id="sidebar" class="bg-white shadow-md border-r flex flex-col transition-all duration-300 w-64 md:w-64">
+
+        <!-- Sidebar Header (Logo) -->
+          <div class="flex items-center p-4 border-b space-x-2">
+            <img src="{% static 'landingpage/logo_only.png' %}" 
+                alt="Tactay-Billedo Logo"
+                class="w-10 h-10 object-contain">
+
+            <div class="sidebar-text">
+              <h1 class="font-bold leading-tight" style="color: #00b94a;">Tactay-Billedo</h1>
+              <p class="text-sm" style="color: #00b94a;">Dental Clinic</p>
+            </div>
+          </div>
+
+
+        <!-- Hamburger Button -->
+        <div class="px-4 py-2">
+          <button id="sidebarToggle" class="focus:outline-none text-gray-500 hover:bg-gray-100 rounded p-2">
+            <span class="material-icons">menu</span>
+          </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="p-4 flex-1">
+          <ul class="space-y-4">
+                  <li>
+                    <a href="{% url 'userprofile:homepage' %}"
+                     class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 p-2 rounded transition w-full">
+                    <span class="material-icons">home</span>
+                    <span class="sidebar-text">Home</span>
+
+                  </a>
+                </li>
+
+
+            {% if user.is_staff or user.is_superuser %}
+            <li>
+            <a href="{% url 'dashboard:index' %}"
+              class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 p-2 rounded w-full">
+              <span class="material-icons">dashboard</span>
+              <span class="sidebar-text">Dashboard</span>
+            </a>
+          </li>
+            {% endif %}
+
+            <li>
+            <a href="{% url 'patient:list' %}"
+              class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 p-2 rounded w-full">
+              <span class="material-icons">folder_shared</span>
+              <span class="sidebar-text">Patient Records</span>
+            </a>
+          </li>
+
+            <li>
+            <a href="{% url 'appointment:list' %}"
+              class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 p-2 rounded w-full">
+              <span class="material-icons">event</span>
+              <span class="sidebar-text">Appointments</span>
+            </a>
+          </li>
+
+
+            {% if user.is_staff %}
+            <li>
+              <a href="{% url 'inventory:list' %}"
+                class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 p-2 rounded w-full">
+                <span class="material-icons">inventory_2</span>
+                <span class="sidebar-text">Inventory</span>
+              </a>
+            </li>
+
+            <li>
+              <a href="{% url 'billing:list' %}"
+                class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 p-2 rounded w-full">
+                <span class="material-icons">receipt_long</span>
+                <span class="sidebar-text">Billing Records</span>
+              </a>
+            </li>
+
+            {% endif %}
+
+            {% if user.is_superuser %}
+            <li>
+            <a href="{% url 'userprofile:admin_dashboard' %}"
+              class="flex items-center space-x-3 text-gray-700 hover:bg-gray-100 p-2 rounded w-full">
+              <span class="material-icons">admin_panel_settings</span>
+              <span class="sidebar-text">Management</span>
+            </a>
+          </li>
+
+            {% endif %}
+
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <div id="mainContent" class="flex-1 min-w-0 flex flex-col transition-all duration-300">
+
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm flex justify-between items-center p-4 border-b">
+          <div class="flex items-center space-x-2 w-1/3">
+            <input
+              type="text"
+              placeholder="Search"
+              class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <!--Messages Button--><!--COMMENTED FOR FUTURE PURPOSES, CAN BE REMOVED ANYTIME SOON-->
+            {% comment %} <div class="relative">
+              <button id="messagesToggle" class="p-2 roounded-full hover:br-gray-100">
+                <span class="material-icons">mail</span>
+              </button>
+              <div id="messagesMenu" class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-md border text-sm z-50">
+                <div class="px-3 py-2 border-b font-semibold">
+                  Messages</div>
+                <p class="px-3 py-3 text-gray-500 text-xs">No new messages</p>
+              </div>
+            </div>
+            <!--Notifications Button-->
+            <div class="relative">
+              <button id="notificationsToggle" class="p-2 rounded-full hover:bg-gray-100">
+                <span class="material-icons">notifications</span>
+              </button>
+              <div id="notificationsMenu"
+                class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-md border text-sm z-50">
+                <div class="px-3 py-2 border-b font-semibold">Notifications</div>
+                <p class="px-3 py-3 text-gray-500 text-xs">No notifications currently.</p>
+              </div>
+            </div>
+            <!--Settings that redirects to profile for the meantime cuz y not-->
+            <a href="{% url 'userprofile:profile' %}" class="p-2 rounded-full hover:bg-gray-100">
+              <span class="material-icons">settings</span>
+            </a> {% endcomment %}
+
+            <!-- User Dropdown -->
+<!-- User Dropdown -->
+          <div class="relative inline-block text-left">
+            <button id="userMenuButton" class="flex items-center space-x-2 focus:outline-none hover:opacity-80">
+              <div class="w-8 h-8 bg-gray-300 rounded-full overflow-hidden flex items-center justify-center">
+                {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="{{ user.first_name }}" class="w-full h-full object-cover">
+            {% else %}
+          <span class="material-icons text-gray-500 text-lg">person</span>
+        {% endif %}
+          </div>
+            <div class="text-left">   
+              <p class="font-semibold">{{ user.first_name }}</p>
+              <p class="text-xs text-gray-500">{% if user.is_superuser %}Admin{% elif user.is_staff %}Staff{% else %}Patient{% endif %}</p>
+            </div>
+              <span class="material-icons text-gray-500">expand_more</span>
+          </button>
+        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+          <a href="{% url 'userprofile:profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+          <a href="{% url 'userprofile:logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Log Out</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+        <!-- Dashboard Content -->
+        <main class="p-6">
+          {% block content %}
+          <div class="w-[2000px] h-10 bg-red-500"></div>
+          <div class="grid grid-cols-2 gap-4 mb-4"> 
+            <div class="bg-white rounded-lg shadow p-4 h-32"></div>
+            <div class="bg-white rounded-lg shadow p-4 h-32"></div>
+            <div class="bg-white rounded-lg shadow p-4 h-32"></div>
+            <div class="bg-white rounded-lg shadow p-4 h-32"></div>
+          </div>
+          <div class="bg-white rounded-lg shadow p-4 h-48"></div>
+          {% endblock %}
+        </main>
+
+      </div>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+
+    <!-- JS for Sidebar Hamburger Toggle and User Dropdown -->  
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebar = document.getElementById('sidebar');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      const sidebarText = document.querySelectorAll('.sidebar-text');
+
+      // Toggle sidebar collapse
+      toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('w-16'); // collapse width
+        sidebar.classList.toggle('md:w-64'); // expand width
+        sidebarText.forEach(el => el.classList.toggle('hidden'));
+      });
+
+      // Responsive behavior
+      function handleResize() {
+        if (window.innerWidth < 768) {
+          sidebar.classList.add('w-16');
+          sidebarText.forEach(el => el.classList.add('hidden'));
+        } else {
+          sidebar.classList.remove('w-16');
+          sidebar.classList.add('md:w-64');
+          sidebarText.forEach(el => el.classList.remove('hidden'));
+        }
+      }
+      window.addEventListener('resize', handleResize);
+      handleResize();
+
+      // User dropdown toggle
+      const btn = document.getElementById('userMenuButton');
+      const menu = document.getElementById('userDropdown');
+        console.log('User button:', btn); // Debug
+        console.log('User menu:', menu);   // Debug
+      if (btn && menu) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        menu.classList.toggle('hidden');
+      });
+      document.addEventListener('click', function (e) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)){
+        menu.classList.add('hidden');
+        }
+      });
+      menu.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+      }
+    });
+    </script>
+
+    <!--script for message and notif toggles--><!--COMMENTED FOR FUTURE PURPOSES, CAN BE REMOVED ANYTIME SOON-->
+    {% comment %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+
+
+        const menus = [
+          { toggleId: 'messagesToggle', menuId: 'messagesMenu' },
+          { toggleId: 'notificationsToggle', menuId: 'notificationsMenu' },
+        ];
+
+        function closeAll() {
+          menus.forEach(({ menuId }) => {
+            const menu = document.getElementById(menuId);
+            if (menu) menu.classList.add('hidden');
+          });
+        }
+
+        menus.forEach(({ toggleId, menuId }) => {
+          const toggle = document.getElementById(toggleId);
+          const menu = document.getElementById(menuId);
+          if (!toggle || !menu) return;
+
+          toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isHidden = menu.classList.contains('hidden');
+            closeAll();
+            if (isHidden) menu.classList.remove('hidden');
+          });
+        });
+
+
+        document.addEventListener('click', function () {
+          closeAll();
+        });
+      });
+    </script> {% endcomment %}
+      <!-- Modal Notification Styles and Script -->
+  <style>
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    @keyframes scale-in {
+      from {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes fade-out {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+    
+    .animate-fade-in {
+      animation: fade-in 0.2s ease-out;
+    }
+    
+    .animate-scale-in {
+      animation: scale-in 0.3s ease-out;
+    }
+    
+    .animate-fade-out {
+      animation: fade-out 0.2s ease-out;
+    }
+  </style>
+
+  <script>
+    // close after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      const modals = document.querySelectorAll('[id^="notification-modal-"]');
+      modals.forEach(modal => {
+        setTimeout(() => {
+          closeModal(modal.id);
+        }, 3000);
+      });
+    });
+
+    // Close modal function
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('animate-fade-out');
+        setTimeout(() => {
+          modal.remove();
+        }, 200);
+      }
+    }
+    
+    // Close on background click
+    document.addEventListener('click', function(e) {
+      if (e.target.id && e.target.id.startsWith('notification-modal-')) {
+        closeModal(e.target.id);
+      }
+    });
+  </script>
+
+  </body>
+</html>
