@@ -1,9 +1,18 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -e
 
-# Install deps FIRST (Render creates .venv automatically)
-pip install -r requirements.txt
+# Upgrade pip first
+python -m pip install --upgrade pip
 
-# Use full Python path with site-packages
-/opt/render/project/python/Python-3.11.0/bin/python isem/manage.py migrate --noinput
-/opt/render/project/python/Python-3.11.0/bin/python isem/manage.py collectstatic --noinput --clear
+# Install dependencies
+python -m pip install -r requirements.txt
+
+# Collect static files
+python manage.py collectstatic --noinput
+
+# Apply migrations
+python manage.py migrate
+# Create a superuser if it doesn't exist
+echo "from django.contrib.auth import get_user_model; User = get_user_model(); \
+if not User.objects.filter(username='admin').exists(): \
+    User.objects.create_superuser('admin', 'rhino@gmail.com', 'admin123')" | python manage.py shell
