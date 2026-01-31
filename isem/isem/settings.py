@@ -41,14 +41,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "appointment",
-    "billing",
-    "core",
-    "dashboard",
-    "inventory",
-    "patient",
-    "userprofile",
-    "landingpage",
+    "isem.appointment",
+    "isem.billing",
+    "isem.core",
+    "isem.dashboard",
+    "isem.inventory",
+    "isem.patient",
+    "isem.userprofile",
+    "isem.landingpage",
 ]
 
 MIDDLEWARE = [
