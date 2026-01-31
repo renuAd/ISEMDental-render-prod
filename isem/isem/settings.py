@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-
+import dj_database_url
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -88,7 +88,10 @@ WSGI_APPLICATION = "isem.wsgi.application"
 # Use PostgreSQL on Render, MySQL locally
 DATABASES = {
     'default': dj_database_url.config(
-        default='mysql://root:admin123@localhost:3306/isem_db',
+        default=os.environ.get(
+            'DATABASE_URL',  # Render will automatically set this
+            'mysql://root:admin123@localhost:3306/isem_db'  # Local fallback
+        ),
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -162,21 +165,3 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-
-try:
-    import dj_database_url
-except ImportError:
-    dj_database_url = None
-
-# Then modify your DATABASES section (around line 89):
-if dj_database_url:
-    DATABASES = {
-        'default': dj_database_url.config(default='sqlite:///db.sqlite3')
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
