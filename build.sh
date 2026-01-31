@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
-# Build script for Render
+# Build script - STAY IN ROOT DIRECTORY
 
 # Activate virtual environment
-set -o allexport
 source .venv/bin/activate
-set +o allexport
 
-cd isem  # ← ENTER THE DJANGO PROJECT FOLDER
-
-# Install Python dependencies
-pip install -r ../requirements.txt
-
-# Run Django migrations
+# Run migrations from ROOT (manage.py is in isem/)
+cd isem
 python manage.py migrate --noinput
-
-# Collect static files
 python manage.py collectstatic --noinput --clear
+cd ..  # Back to root
