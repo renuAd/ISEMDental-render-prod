@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Build script - STAY IN ROOT DIRECTORY
+set -e
 
-# Activate virtual environment
+# Stay in ROOT, set PYTHONPATH, activate venv
+export PYTHONPATH=/opt/render/project/src:$PYTHONPATH
 source .venv/bin/activate
 
-# Run migrations from ROOT (manage.py is in isem/)
-cd isem
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput --clear
-cd ..  # Back to root
+# Run Django commands from ROOT (manage.py is in isem/)
+python isem/manage.py migrate --noinput
+python isem/manage.py collectstatic --noinput --clear
