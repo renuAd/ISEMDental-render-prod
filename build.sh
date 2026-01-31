@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# exit on error
-set -o errexit
+# Build script for Render
 
-pip install -r requirements.txt
+# Activate virtual environment
+set -o allexport
+source .venv/bin/activate
+set +o allexport
 
-# Debug: Show where we are and what's here
-echo "=== Current directory ==="
-pwd
-echo "=== Listing root files ==="
-ls -la
-echo "=== Listing isem folder ==="
-ls -la isem/ || echo "isem folder not found!"
-echo "=== Python path ==="
-python -c "import sys; print('\n'.join(sys.path))"
+cd isem  # ← ENTER THE DJANGO PROJECT FOLDER
 
-python manage.py collectstatic --no-input
-python manage.py migrate
+# Install Python dependencies
+pip install -r ../requirements.txt
+
+# Run Django migrations
+python manage.py migrate --noinput
+
+# Collect static files
+python manage.py collectstatic --noinput --clear
