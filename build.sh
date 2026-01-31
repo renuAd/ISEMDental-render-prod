@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-# Stay in ROOT, set PYTHONPATH, activate venv
-export PYTHONPATH=/opt/render/project/src:$PYTHONPATH
-source .venv/bin/activate
+# Install deps FIRST (Render creates .venv automatically)
+pip install -r requirements.txt
 
-# Run Django commands from ROOT (manage.py is in isem/)
-python isem/manage.py migrate --noinput
-python isem/manage.py collectstatic --noinput --clear
+# Use full Python path with site-packages
+/opt/render/project/python/Python-3.11.0/bin/python isem/manage.py migrate --noinput
+/opt/render/project/python/Python-3.11.0/bin/python isem/manage.py collectstatic --noinput --clear
